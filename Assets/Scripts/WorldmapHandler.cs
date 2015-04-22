@@ -6,53 +6,88 @@ namespace hd
 
 public class WorldmapHandler : MonoBehaviour 
 {
+	public GameObject cam;
+	public float lerpTime = 1f;
+	public float zoom = 2f;
+
 	private Vector3 m_startCoordinates;
-	private bool m_bMoving = false;
+	private bool m_bZoomIn = false;
+	private bool m_bZoomOut = false;
+	private float m_currentLerpTime = 0f;
+	private Vector3 m_targetPos;
+
+	private Camera c;
+	private float m_startSize;
+
 
 	void Start () 
 	{
-		m_startCoordinates = Camera.main.transform.position;
+		m_startCoordinates = cam.transform.position;
+		c = cam.GetComponent<Camera>();
+		m_startSize = c.orthographicSize;
 		
 	}
 
 	void Update () 
 	{
-		if (Input.GetMouseButtonDown (0) && !m_bMoving)
+		if (Input.GetMouseButtonDown (0) && !m_bZoomIn && !m_bZoomOut)
 		{	
-			if(Camera.main.transform.position == m_startCoordinates) 
+			if(c.transform.position == m_startCoordinates) 
 			{
-				Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
-				RaycastHit hit;
-				if (Physics.Raycast (ray, out hit)) 
+				RaycastHit2D hit = Physics2D.Raycast(new Vector2(c.ScreenToWorldPoint(Input.mousePosition).x,
+					                                             c.ScreenToWorldPoint(Input.mousePosition).y), 
+					                                     Vector2.zero, 0);
+				if (hit.collider != null && hit.collider.tag == "City") 
 				{
-					//print (hit.collider.name);
-					//print (hit.point);
-					Vector3 movePoint = hit.point + new Vector3(0f,0f,-1f);
-					MoveCamera(movePoint);
+					Vector3 movePoint = new Vector3(hit.point.x, hit.point.y, 0f);
+					m_targetPos = movePoint;
+					m_bZoomIn = true;
+					m_currentLerpTime = 0f;
 				}
-			} 
-			else
+			}
+			else if(c.transform.position != m_startCoordinates)
 			{
-				print ("move camera back to start coordinates");
-				MoveCamera(m_startCoordinates);
+				m_bZoomOut = true;
+				m_currentLerpTime = 0f;
+				m_targetPos = cam.transform.position;
+			}
+		}
+		
+		if (m_bZoomIn || m_bZoomOut) 
+		{
+			m_currentLerpTime += Time.deltaTime;
+		}
+
+		if (m_bZoomIn) 
+		{
+			c.orthographicSize = Mathf.Lerp(m_startSize, m_startSize/zoom, m_currentLerpTime/lerpTime);
+			c.transform.position = Vector3.Lerp(m_startCoordinates, m_targetPos, m_currentLerpTime/lerpTime);
+			if (m_currentLerpTime > lerpTime) 
+			{
+				c.transform.position = m_targetPos;
+				m_bZoomIn = false;	
+			}
+	
+		}
+		else if(m_bZoomOut)
+		{
+			c.orthographicSize = Mathf.Lerp( m_startSize/zoom, m_startSize, m_currentLerpTime/lerpTime);
+			c.transform.position = Vector3.Lerp(m_targetPos, m_startCoordinates, m_currentLerpTime/lerpTime);
+			if(m_currentLerpTime > lerpTime) 
+			{
+				c.transform.position = m_startCoordinates;
+				m_bZoomOut = false;
 			}
 		}
 	}
 
-	void MoveCamera(Vector3 pos)
-	{
-		m_bMoving = true;
-		iTween.MoveTo(Camera.main.gameObject, iTween.Hash(
-												"position", pos,
-												"time", 1f,
-												"oncompletetarget", gameObject,
-												"oncomplete", "MoveFinished"));
-	}
+
 
 	void MoveFinished()
 	{
 		print("Camera move finished");
-		m_bMoving = false;
+		m_bZoomIn = false;
+		m_bZoomOut = false;
 	}
 }
 
