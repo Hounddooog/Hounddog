@@ -1,0 +1,5 @@
+Hounddog TODO:
+--------------
+- Do not drag memos outside of worldmap
+- If memo is clicked, no click should be processed on map
+

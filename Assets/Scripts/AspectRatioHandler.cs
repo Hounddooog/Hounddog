@@ -3,15 +3,16 @@ using System.Collections;
 
 namespace hd
 {
-
+	[RequireComponent (typeof(Camera))]
 	public class AspectRatioHandler : MonoBehaviour 
 	{
 			
 		public float newAspectRatio = 2560.0f / 1440.0f;
-		public Camera cam;
-		
+
 		void Awake()
 		{
+			Camera cam = gameObject.GetComponent<Camera> ();
+
 			float variance = newAspectRatio / cam.aspect;
 			if (variance < 1.0f) 
 			{
