@@ -1,24 +1,29 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class AspectRatioHandler : MonoBehaviour 
+namespace hd
 {
-		
-	public float newAspectRatio = 2560.0f / 1440.0f;
-	public Camera camera;
-	
-	void Awake()
+
+	public class AspectRatioHandler : MonoBehaviour 
 	{
-		float variance = newAspectRatio / camera.aspect;
-		if (variance < 1.0f) 
+			
+		public float newAspectRatio = 2560.0f / 1440.0f;
+		public Camera cam;
+		
+		void Awake()
 		{
-			camera.rect = new Rect ((1.0f - variance) / 2.0f, 0f, variance, 1.0f);
+			float variance = newAspectRatio / cam.aspect;
+			if (variance < 1.0f) 
+			{
+				cam.rect = new Rect ((1.0f - variance) / 2.0f, 0f, variance, 1.0f);
+			}
+			else
+			{
+				variance = 1.0f / variance;
+				cam.rect = new Rect (0f, (1.0f - variance) / 2.0f , 1.0f, variance);
+			}
 		}
-		else
-		{
-			variance = 1.0f / variance;
-			camera.rect = new Rect (0f, (1.0f - variance) / 2.0f , 1.0f, variance);
-		}
+
 	}
 
 }
